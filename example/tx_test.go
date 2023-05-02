@@ -32,14 +32,14 @@ func TestBuildTx(t *testing.T) {
 	tx.SetInputs(inputs)
 	tx.SetOutputs(ouputs)
 	tx.SetOpData(opData)
-	txEntty, err := tx.BuildTx()
+	txEntity, err := tx.BuildTx()
 	if err != nil {
 		fmt.Printf("MakeTx err:%s\n", err.Error())
 		return
 	}
 	//After broadcasting TxHex to the block node, use txId to query its record on the block browser
-	fmt.Printf("TxId:%s\n", txEntty.TxID())
-	fmt.Printf("TxHex:%s\n", txEntty.String())
+	fmt.Printf("TxId:%s\n", txEntity.TxID())
+	fmt.Printf("TxHex:%s\n", txEntity.String())
 }
 
 

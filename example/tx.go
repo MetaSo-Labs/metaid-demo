@@ -18,6 +18,8 @@ type Tx struct {
 	opData        [][]byte
 	changeAddress string
 	fee           float64
+	isBuild       bool
+	outUtxos      []Utxo
 }
 
 func NewTx() *Tx {
@@ -52,15 +54,17 @@ func (t *Tx) BuildTx() (*bt.Tx, error) {
 		outputAmount uint64 = 0
 		newTx                  = bt.NewTx()
 		utxos               = make([]*bt.UTXO, 0)
+		outUtxos               = make([]Utxo, 0)
 		err error
 		tmpChangeSatoshi uint64 = 10000000000
 	)
-	if len(t.inputs) == 0 || len(t.outputs) == 0 {
-		return nil, errors.New("inputs or outputs is empty")
+	if len(t.inputs) == 0 {
+		return nil, errors.New("inputs are empty")
 	}
 	if len(t.changeAddress) == 0 {
 		t.changeAddress = t.inputs[0].Address
 	}
+	newTx.Version = 10
 
 	//Assemble inputs in newTx
 	for _, input := range t.inputs {
@@ -124,7 +128,28 @@ func (t *Tx) BuildTx() (*bt.Tx, error) {
 			return nil, err
 		}
 	}
+	t.isBuild = true
+
+	for index, output := range newTx.Outputs {
+		if output.LockingScript.IsP2PKH() {
+			addresses, _ := output.LockingScript.Addresses()
+			outUtxos = append(outUtxos, Utxo{
+				Address:addresses[0],
+				Value: output.Satoshis,
+				Index: uint64(index),
+				Tx:    newTx.TxID(),
+			})
+		}
+	}
+	t.outUtxos = outUtxos
 	return newTx, nil
+}
+
+func (t *Tx) GetOutUtxos() ([]Utxo, error) {
+	if !t.isBuild {
+		return nil, errors.New("Tx had not built. ")
+	}
+	return t.outUtxos, nil
 }
 
 //Calculate dust

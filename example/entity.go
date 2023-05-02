@@ -19,5 +19,4 @@ type Utxo struct {
 	Value   uint64
 	Index   uint64
 	Tx      string
-	Script  string
 }
